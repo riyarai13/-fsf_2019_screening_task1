@@ -1,0 +1,53 @@
+#navList a{
+    color:orange;
+    
+}
+
+.help-text{
+    list-style-position: outside;
+    list-style-type:square ;
+}
+
+#MainCard{
+    padding-left: 8%;
+    min-height: 600px;
+}
+
+
+.containerForCard{
+    height: 600px;
+}
+
+.navList{
+    margin-top:10px;
+    margin-left:0px;
+    width:250px;
+}
+
+.sidebar{
+    position: absolute;
+    left: 0%;
+    z-index: 100;
+    opacity: 0.5;
+  }
+
+  .left-icon{
+    position:absolute;
+    right:10%;
+  }
+ 
+
+
+.profile-content{
+    font-weight: bold;
+    border: solid 3px red;
+    padding:40px;
+}
+
+.profile_label{
+    margin-bottom: 3%;
+}
+
+.text-size-small{
+    font-size: 15px;
+}

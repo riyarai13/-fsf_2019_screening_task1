@@ -1,0 +1,240 @@
+{% extends 'Main/teams.html' %}
+
+{% block team_content %}
+
+
+
+{% if title|lower == "members" %}
+
+<!-- Member Page Title -->
+<div class="card-title d-flex justify-content-center">
+    <h4 class="display-5 border-bottom">
+        {{title}}
+        {% if position|lower == "creator" %}
+          <a type="button" data-toggle="modal" data-target="#addMemberModal">
+              <i class="fa fa-user-plus fa-2x" aria-hidden="true" style="right:4%;position: absolute;top:1%;" title="Create new team"></i>
+          </a>
+        {% endif %}
+    </h4>
+</div>
+
+<div class="card-text"> 
+
+<!-- Member List -->
+<div class="list-group border-top" style="margin-top:5%;padding-top: 5%">
+    {% for pk,member_name in team_members.items %}
+        <a href="../profile/{{member_name}}" target="_blank"class="list-group-item list-group-item-action">
+            <i class="fa fa-user-circle fa-2x" aria-hidden="true"></i>
+           <strong style="margin-left: 2%;margin-right: 10%;">{{member_name}}</strong>
+        </a>
+    {% endfor %}
+</div>
+
+
+<!-- add Member Modal -->
+<div class="modal fade" id="addMemberModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add new Member</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+            </div>
+            <div class="modal-body">
+                <form method="post">
+                        {% csrf_token %}
+                        {{ add_member_form.as_p }}
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+{% elif title|lower == "description" %}
+
+<h3 class="display-5 border-bottom d-flex justify-content-center p-4">
+    {{title}}
+</h3>
+
+<div class="card border-secondary" style="margin-top:40px;">
+        <div class="card-body">
+          <h4 class="card-title">Team Info</h4>
+          <div class="card-text">
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <p>Name : {{selected_team}}
+                </li>
+                <li class="list-group-item">
+                  Description : {{team_desc.team_description}}
+                </li>
+                <li class="list-group-item">
+                  Member count :{{team_desc.mem_count}}
+                </li>
+                <li class="list-group-item">
+                  Task count :  {{team_desc.ts_count}}
+                </li>            
+                </ul>
+          </div>
+        </div>
+      </div>
+
+{% elif title|lower == "tasks" %}
+
+<!-- Tasks -->
+
+<!-- Tasks Page Title -->
+<div class="card-title d-flex justify-content-center">
+        <h4 class="display-5 border-bottom">
+            {{title}}
+            <a  type="button" data-toggle="modal" data-target="#addMemberModal">
+                <i id="loadToolbar-modal" class="far fa-plus-square fa-2x" aria-hidden="true" style="right:4%;position: absolute;top:1%;" title="Add new task" data-toggle="tooltip"></i>
+            </a>
+        </h4>
+    </div>
+    
+    <div class="card-text"> 
+    
+    <!-- Tasks List -->
+    <div class="list-group border-top" style="margin-top:5%;padding-top: 5%">
+        <div class="accordion" id="accordionTasks">
+        {% for pk,task in team_tasks.items %}
+        <div class="card">
+                <div class="card-header bg-white" id="heading_{{ forloop.counter }}">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse_{{ forloop.counter }}" id="title_btn">
+                      {{task.title}}
+                      {% if task.status == "done" %}
+                        <i class="fa fa-circle fa-1x mx-4 status-cricle" aria-hidden="true" style="color:green;"></i>
+                      {% else %}
+                        <i class="fa fa-circle fa-1x mx-4 status-cricle" aria-hidden="true" style="color: rgb(223, 226, 27)"></i>
+                      {% endif %}
+                    </button>
+                    <span class="text-size-small">
+                        <!-- assigned by -->
+                        <span class="text-muted">By
+                          <a href="{% url 'profile' task.assigner %}">
+                            {{task.assigner}}
+                          </a>
+                        </span>
+                        <!-- Assigned to -->
+                          <span class="text-muted pl-4">To 
+                          <a href="{% url 'profile' task.assigner %}">
+                            {{task.assignee}}
+                          </a>         
+                        </span>
+
+                      </span>
+                    
+
+                    {% if task.assignee == user %}
+                    <!-- Task Finished Button -->
+                    <a href="{% url 'markTaskComplete'%}?pk={{pk}}" class="markTaskFinished" >
+                      <i class="fa fa-check fa-2x" aria-hidden="true" style="position: absolute;right:2%;" title="mark task complete" data-toggle="tooltip"></i>
+                    </a>
+                    {% endif %}
+                  {% if task.assigner == user %}
+                  <!-- Task Edit Button -->
+                  <a href="{% url 'edit_tasks' %}?pk={{pk}}" id="editTask">
+                    <i class="fas fa-edit fa-2x"  style="position: absolute; right:10%;" title="Edit Task" data-toggle="tooltip"></i>
+                  </a>
+                  {% endif %}
+                
+                  </h5>
+      
+                </div>
+            
+                <div id="collapse_{{ forloop.counter }}" class="collapse" data-parent="#accordionTasks">
+                <div class="card-body bg-light">
+                <h6 class="dsc-title text-muted border-bottom pb-1">
+                    Description
+                  </h6>
+                  <div class="ml-4 " style="line-height:1.8">
+                    {% autoescape off %}
+                    {{task.description|linebreaks}}
+                    {% endautoescape %}
+
+                  </div>
+                  <!-- Comment section -->
+                  
+                  <div class="comments pb-4">
+                    <h5 class="comment-title text-muted border-bottom pb-1">
+                      comments
+                    </h5>
+                      {% for d,cms in task.comments.items %}
+                        <h6 class="pt-4 text-muted border-bottom">
+                          Date :- {{d}}
+                        </h6>
+                        <div class="comments-content">
+                        <ul>
+                          {% for comment in cms %}
+                            <li>{{comment}}</li>
+                          {% endfor %}
+                        </ul>
+                        </div>
+                      {% endfor %}
+                  </div>
+                  
+                    {% if task.comments.items|length > 0 %}
+                      <div class="border-bottom"></div>
+                    {% endif %}
+                  <!-- New comment section -->
+                  <div class="m-4">
+                    <form method="post">
+                      {{form_comment.as_p}}
+                      {%csrf_token%}
+                      <input type="hidden" name="task_id" value="{{pk}}">
+                      <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                  </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+    </div>
+
+ 
+    
+    <!-- Add new task Modal -->
+    <div class="modal fade" id="addMemberModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add new task</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" id="TaskForm">
+                            {% csrf_token %}                                                               
+                            {% for field in add_task_form %}
+                              <label for="{{field.label}}">{{field.label}}</label>
+                              {% if field.html_name == "addTaskFromTeam-task_description" %}
+                              <div class="editor" contenteditable="true" style="height: 300px">
+                              </div>
+                              <input type="hidden" cols="40" rows="15"  name="{{field.html_name}}" id="{{field.id_for_label}}" class="form-control descArea">
+                              {% else %}
+                              <input type="text"  name="{{field.html_name}}" id="{{field.id_for_label}}" class="form-control" placeholder="Enter {{field.label}}" aria-describedby="helpId">
+                              {% endif %}
+                              <small id="helpId" class="text-muted">{{field.help_text}}</small>
+                            {% endfor %}      
+                            <!-- {{add_task_form.as_p}} -->
+                            <button type="submit" class="btn btn-primary" id='submitTask'>Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    </div>
+
+
+
+
+{% endif %}
+{% endblock %}
